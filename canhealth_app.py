@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+print('loading function')
 import canhealth_functions
 import llm_setup_runpod as llm
 from datetime import datetime
@@ -19,14 +20,14 @@ sample_dict = dict(zip(sample_df['Requested Exam'], sample_df['Indication']))
 
 
 sample_selection = list(sample_dict.keys())
-sample_selection = sample_selection.extend(['New Indication'])
+sample_selection.append('New Indication')
 
 assistant_avatar= 'SAPIEN-SECCURE-ICON-LOGO-COLOR.png'
 # -----------------------------
 # PAGE CONFIG — must come first
 # -----------------------------
 st.set_page_config(
-    page_title="SapienBilling",
+    page_title="Sapien US Protocoling",
     page_icon="SAPIEN-SECCURE-ICON-LOGO-COLOR.png",
     layout="wide"
 )
@@ -214,27 +215,21 @@ if check_credentials():
     if "sample_selection" not in st.session_state:
         st.session_state['sample_selection'] = False
 
-
-    if "final_prompt" not in st.session_state:
-        st.session_state['final_prompt'] = False
-
     if "run_prompt" not in st.session_state:
         st.session_state['run_prompt'] = False
 
-    # if "conversation" not in st.session_state:
-    #     st.session_state['conversation'] = False
 
     if "ai_output" not in st.session_state:
         st.session_state['ai_output'] = False
 
     if "feedback_history" not in st.session_state:
-        st.session_state["feedback_history"]= []
+        st.session_state["feedback_history"] = []
 
     if "feedback_current" not in st.session_state:
-        st.session_state["feedback_current"]= {}
+        st.session_state["feedback_current"] = {}
 
     if "last_message" not in st.session_state:
-        st.session_state['last_message']=False
+        st.session_state['last_message'] = False
 
 
 
@@ -242,18 +237,14 @@ if check_credentials():
     # Function for Reset Button
     def reset():
         st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
-        st.session_state.final_prompt = False
         st.session_state.run_prompt = False
         st.session_state['indication'] = False
         st.session_state['exam'] = False
         st.session_state['sample_selection'] = False
-
-        # st.session_state['conversation'] = False
-
         st.session_state['ai_output'] = False
         st.session_state['feedback_history'] = []
         st.session_state['message_history'] = []
-        # st.session_state.selected_question = False
+
 
 
 
@@ -293,9 +284,9 @@ if check_credentials():
 
                 # append_feedback_to_github(feedback_data)
                 pd.DataFrame([feedback_data]).to_csv(
-                    "data/outputs/prediction_feedback.csv",
+                    "data/output/prediction_feedback.csv",
                     mode="a",
-                    header=not os.path.exists("data/outputs/prediction_feedback.csv"),
+                    header=not os.path.exists("data/output/prediction_feedback.csv"),
                     index=False
                 )
                 reset()
@@ -324,23 +315,18 @@ if check_credentials():
                                                              options=sample_selection,index=None, on_change=clear)
 
             #For samples, get the indication
-            if st.session_state.sample_selection and st.session_state.report_selection not in ['New Indication']:
-
+            if st.session_state.sample_selection and st.session_state.sample_selection not in ['New Indication']:
                 st.session_state.exam = st.session_state.sample_selection
                 st.session_state.indication = sample_dict[st.session_state.exam]
-
                 #When sample selected, show the details in text areas and allow user to run with Run Prompt Button
                 if st.session_state.exam:
-
                     st.session_state.exam = st.text_area('Exam Requested', st.session_state.exam)
                     st.session_state.indication = st.text_area('Indication', value=st.session_state.indication)
 
             #For new indications
             if st.session_state.sample_selection and st.session_state.sample_selection in ['New Indication']:
-
                 st.session_state.exam = st.text_area('Exam Requested', placeholder='Enter Exam Requested')
                 st.session_state.indication = st.text_area('Indication', placeholder='Enter Indication')
-
 
         with tab2:
             st.text("💭 Feedback Section")
@@ -373,7 +359,7 @@ if check_credentials():
                     "Feedback Type": "Prediction Feedback",
                     "Feedback Text": feedback_text,
                     "Total History": st.session_state.feedback_history,
-                    # "History" : st.session_state.messages,
+                    "History" : st.session_state.messages,
                     "Problem Response": problem_instance,
                     "Current Indication": st.session_state.get("indication"),
                     "Current Exam": st.session_state.get("exam"),
@@ -382,9 +368,9 @@ if check_credentials():
 
                 # Save feedback
                 pd.DataFrame([feedback_data]).to_csv(
-                    "data/outputs/prediction_feedback.csv",
+                    "data/output/prediction_feedback.csv",
                     mode="a",
-                    header=not os.path.exists("data/outputs/prediction_feedback.csv"),
+                    header=not os.path.exists("data/output/prediction_feedback.csv"),
                     index=False
                 )
                 # append_feedback_to_github(feedback_data)
@@ -413,15 +399,19 @@ if check_credentials():
     if st.session_state.run_prompt:
         with st.spinner('Generating Response...'):
             #get llm response
-            output = canhealth_functions.process_request(st.session_state.exam, st.session_state.indication,
+            st.session_state.ai_output = canhealth_functions.process_request(st.session_state.exam, st.session_state.indication,
                                                          api_key=st.secrets["runpod_api_key"]["api_key"])
-        user_content = f'Exam Requested: {st.session_state.exam}\nIndication: {st.session_state.indication}'
-        message_history = [{"role": "user", "content": user_content},{"role": "assistant", "content": output}]
+        print('ai output:', st.session_state.ai_output)
+        user_content = f'''Prioritize the following:
+        Exam Requested: {st.session_state.exam}
+        Indication: {st.session_state.indication}'''
+        message_history = [{"role": "user", "content": user_content},
+                           {"role": "assistant", "content": st.session_state.ai_output}]
         st.session_state.message_history.extend(message_history)
         st.session_state.messages.append({"role": "user", "content": user_content})
         st.chat_message("user", avatar="🧑‍💻").markdown(user_content)
-        st.chat_message("assistant", avatar=assistant_avatar).markdown(output)
-        st.session_state.messages.append({"role": "assistant", "content": output})
+        st.chat_message("assistant", avatar=assistant_avatar).markdown(canhealth_functions.dict_to_markdown(st.session_state.ai_output))
+        st.session_state.messages.append({"role": "assistant", "content": canhealth_functions.dict_to_markdown(st.session_state.ai_output)})
         st.session_state.feedback_current['LLM Trace'] = st.session_state.message_history
 
 

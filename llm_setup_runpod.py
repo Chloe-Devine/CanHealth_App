@@ -28,7 +28,7 @@ promptheader = '''<|im_start|>user\n'''
 promptfooter = '''\n<|im_end|>\n<|im_start|>assistant\n<think>'''
 
 
-def llm_execute(prompt, api_key=None, settings=nonthinking_settings, enable_thinking=False, poll_interval=2):
+def llm_execute(prompt, max_tokens, api_key=None, settings=nonthinking_settings, enable_thinking=False, poll_interval=2):
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}"
@@ -75,15 +75,20 @@ def llm_execute(prompt, api_key=None, settings=nonthinking_settings, enable_thin
         output_text = resp_json["output"][0]["choices"][0]["tokens"]
         if len(output_text) == 1:
             output = output_text[0]
-            return output.strip()
+            try:
+                thinking_content = output[:output.find('</think>')]
+                answer = output[output.find('</think>')+8:]
+                return thinking_content, answer
+            except:
+                return output.strip(), 200
         else:
             output_list = []
             for reply in output_text:
                 output_list.append(reply.strip())
-            return output_list
+            return output_list, 200
     except (KeyError, IndexError):
         output_text = str(resp_json)
-        return output_text.strip()
+        return output_text.strip(), 200
 
 warmup_settings = {
     'max_tokens': 256,

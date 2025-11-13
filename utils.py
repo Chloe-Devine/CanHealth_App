@@ -1,20 +1,23 @@
 import pandas as pd
-import llm_setup as llm
+print('loading llm')
+import llm_setup_runpod as llm
+print('llm loaded')
 import torch
 import ast
+
 from sentence_transformers import SentenceTransformer
 
 
-protocol_defs = pd.read_excel('definitions/Protocol Definitions v6.xlsx')
+protocol_defs = pd.read_excel('data/definitions/Protocol Definitions v6.xlsx')
 protocol_dfs = dict(zip(protocol_defs["Protocol"], protocol_defs["Definition 2"]))
 
 protocol_2_guide = dict(zip(protocol_defs["Protocol"], protocol_defs["Prioritization Guide Section"]))
 
 
-guide_sections_file = pd.read_excel('prioritization_guide_sections/prioritization_guide_contents v5.xlsx')
+guide_sections_file = pd.read_excel('data/prioritization_guide/prioritization_guide_contents v5.xlsx')
 guide_contents_dict = dict(zip(guide_sections_file["Guide Section Name"], guide_sections_file["Contents"]))
 
-prompts = pd.read_excel('prompts/prompts v7.xlsx')
+prompts = pd.read_excel('data/prompts/prompts v7.xlsx')
 prompts_dict = dict(zip(prompts["Type"], prompts["prompt"]))
 
 print('loading embedding model')
@@ -47,13 +50,13 @@ def get_topk_definitions(indication, exam_requested, top_k=5):
 
 
 
-def get_protocol(indication, exam_requested, protocol_definitions, max_tokens = 512, enable_thinking=False):
+def get_protocol(indication, exam_requested, protocol_definitions, api_key, max_tokens = 512, enable_thinking=False):
     protocol_prompt_txt = prompts_dict['Protocol'].format(indication = indication, exam_requested=exam_requested, definitions = protocol_definitions)
-    thinking_content, answer = llm.llm_execute(protocol_prompt_txt, max_tokens=max_tokens, enable_thinking=enable_thinking)
+    thinking_content, answer = llm.llm_execute(protocol_prompt_txt, max_tokens=max_tokens,api_key=api_key, enable_thinking=enable_thinking)
     return thinking_content, answer
 
 def get_guide_contents(protocol_pred):
-    # protocol_pred = ast.literal_eval(protocol_pred)
+    protocol_pred = ast.literal_eval(protocol_pred)
     guide_contents = guide_contents_dict['Introduction']
     section_names = []
     for pred in protocol_pred:
@@ -71,16 +74,25 @@ def get_guide_contents(protocol_pred):
     guide_contents += content
     return guide_contents
 
-def get_priority(indication, exam_requested, protocol_pred,max_tokens = 512, enable_thinking=False):
+def get_priority(indication, exam_requested, protocol_pred,api_key,max_tokens = 512, enable_thinking=False):
     guide_contents = get_guide_contents(protocol_pred)
     prompt = prompts_dict['Priority'].format(indication=indication, exam_requested=exam_requested, contents=guide_contents)
-    thinking_content, answer= llm.llm_execute(prompt, max_tokens=max_tokens, enable_thinking=enable_thinking)
+    thinking_content, answer= llm.llm_execute(prompt, api_key=api_key, max_tokens=max_tokens, enable_thinking=enable_thinking)
     return thinking_content, answer
 
-def get_inferred_priority(indication, exam_requested, previous_reasoning,protocol_pred,max_tokens = 512, enable_thinking=False):
+def get_inferred_priority(indication, exam_requested, previous_reasoning,protocol_pred,api_key,max_tokens = 512, enable_thinking=False):
     guide_contents = get_guide_contents(protocol_pred)
-    prompt = prompts_dict['Priority2'].format(indication=indication, exam_requested=exam_requested, contents=guide_contents, reasoning=previous_reasoning)
-    # print(prompt)
-    thinking_content, answer= llm.llm_execute(prompt, max_tokens=max_tokens, enable_thinking=enable_thinking)
+    prompt = prompts_dict['Priority2'].format(indication=indication, exam_requested=exam_requested, contents=guide_contents)
+    thinking_content, answer= llm.llm_execute(prompt, max_tokens=max_tokens,  api_key=api_key, enable_thinking=enable_thinking)
     return thinking_content, answer
+
+
+
+
+
+
+
+
+
+
 
