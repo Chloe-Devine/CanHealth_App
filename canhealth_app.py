@@ -403,7 +403,6 @@ if check_credentials():
             #get llm response
             st.session_state.ai_output = canhealth_functions.process_request(st.session_state.exam, st.session_state.indication,
                                                          api_key=st.secrets["runpod_api_key"]["api_key"])
-        print('ai output:', st.session_state.ai_output)
         user_content = f'''Prioritize the following:
         Exam Requested: {st.session_state.exam}
         Indication: {st.session_state.indication}'''

@@ -56,7 +56,7 @@ def get_protocol(indication, exam_requested, protocol_definitions, api_key, max_
     return thinking_content, answer
 
 def get_guide_contents(protocol_pred):
-    protocol_pred = ast.literal_eval(protocol_pred)
+    # protocol_pred = ast.literal_eval(protocol_pred)
     guide_contents = guide_contents_dict['Introduction']
     section_names = []
     for pred in protocol_pred:

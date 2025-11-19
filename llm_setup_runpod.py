@@ -100,7 +100,7 @@ warmup_settings = {
 }
 
 def warmup_model(api_key=None):
-    response= llm_execute(prompt='Hello', api_key=api_key, settings=warmup_settings)
+    response= llm_execute(prompt='Hello', max_tokens=warmup_settings['max_tokens'],api_key=api_key, settings=warmup_settings)
     print('warmup done')
 
 
