@@ -8,16 +8,16 @@ import ast
 from sentence_transformers import SentenceTransformer
 
 
-protocol_defs = pd.read_excel('data/definitions/Protocol Definitions v6.xlsx')
+protocol_defs = pd.read_excel('data/definitions/Protocol Definitions v7.xlsx')
 protocol_dfs = dict(zip(protocol_defs["Protocol"], protocol_defs["Definition 2"]))
 
 protocol_2_guide = dict(zip(protocol_defs["Protocol"], protocol_defs["Prioritization Guide Section"]))
 
 
-guide_sections_file = pd.read_excel('data/prioritization_guide/prioritization_guide_contents v5.xlsx')
+guide_sections_file = pd.read_excel('data/prioritization_guide/prioritization_guide_contents v8.xlsx')
 guide_contents_dict = dict(zip(guide_sections_file["Guide Section Name"], guide_sections_file["Contents"]))
 
-prompts = pd.read_excel('data/prompts/prompts v7.xlsx')
+prompts = pd.read_excel('data/prompts/prompts v9.xlsx')
 prompts_dict = dict(zip(prompts["Type"], prompts["prompt"]))
 
 print('loading embedding model')
@@ -85,6 +85,7 @@ def get_inferred_priority(indication, exam_requested, previous_reasoning,protoco
     prompt = prompts_dict['Priority2'].format(indication=indication, exam_requested=exam_requested, contents=guide_contents)
     thinking_content, answer= llm.llm_execute(prompt, max_tokens=max_tokens,  api_key=api_key, enable_thinking=enable_thinking)
     return thinking_content, answer
+
 
 
 
