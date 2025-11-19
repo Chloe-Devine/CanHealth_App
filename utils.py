@@ -22,7 +22,7 @@ prompts_dict = dict(zip(prompts["Type"], prompts["prompt"]))
 
 print('loading embedding model')
 ##Embedding Set Up
-embedder = SentenceTransformer("mixedbread-ai/mxbai-embed-large-v1")#mixedbread-ai/mxbai-embed-large-v1 #"all-MiniLM-L6-v2"
+embedder = SentenceTransformer("BAAI/bge-small-en-v1.5")#mixedbread-ai/mxbai-embed-large-v1 #"all-MiniLM-L6-v2"
 print('embedding model loaded')
 # Corpus with example documents
 corpus = [k +': ' + v for k, v in protocol_dfs.items()]
@@ -77,7 +77,7 @@ def get_guide_contents(protocol_pred):
 def get_priority(indication, exam_requested, protocol_pred,api_key,max_tokens = 512, enable_thinking=False):
     guide_contents = get_guide_contents(protocol_pred)
     prompt = prompts_dict['Priority'].format(indication=indication, exam_requested=exam_requested, contents=guide_contents)
-    thinking_content, answer= llm.llm_execute(prompt, api_key=api_key, max_tokens=max_tokens, enable_thinking=enable_thinking)
+    thinking_content, answer= llm.llm_execute(prompt, max_tokens=max_tokens, api_key=api_key,enable_thinking=enable_thinking)
     return thinking_content, answer
 
 def get_inferred_priority(indication, exam_requested, previous_reasoning,protocol_pred,api_key,max_tokens = 512, enable_thinking=False):

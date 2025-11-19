@@ -194,7 +194,9 @@ if check_credentials():
     st.success(f"Welcome, {st.session_state['user']}! 👋")
     if not st.session_state.get('warmup_done',False):
         print(st.session_state.get('warmup_done'))
+        print('warming up')
         threading.Thread(target=llm.warmup_model, args=(st.secrets["runpod_api_key"]["api_key"],)).start()
+        print('warmup done')
         st.session_state['warmup_done'] = True
 
 
