@@ -1,0 +1,2 @@
+# vLLM Setup
+python -m vllm.entrypoints.openai.api_server   --model models/Qwen_Qwen3-14B-AWQ   --quantization awq_marlin   --dtype auto   --max-model-len 8192   --port 8001   --max_num_batched_tokens=2046  --gpu-memory-utilization 0.8
