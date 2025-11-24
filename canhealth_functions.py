@@ -5,7 +5,6 @@ import ast
 
 
 def process_request(exam_requested, indication, api_key):
-
     # get top n protocols
     n = 6
     topk_protocols, topk_definitions = utils.get_topk_definitions(indication,exam_requested,top_k=n)
@@ -25,7 +24,6 @@ def process_request(exam_requested, indication, api_key):
                                                          enable_thinking=True)
         priority_pred = ast.literal_eval(priority_pred)
 
-
     else:
         if 'Procedure' in protocol_pred:
             priority_thinking, priority_pred = '', ['Procedure Protocol']
@@ -34,9 +32,18 @@ def process_request(exam_requested, indication, api_key):
         else:
             priority_thinking, priority_pred = '', []
 
-    output = {'protocol_thinking': protocol_thinking, 'protocol_prediction': protocol_pred,
-              'priority_thinking': priority_thinking, 'priority_prediction': priority_pred}
+    # Summarize Protocol
+    print('JOINING:', ", ".join(protocol_pred))
+    thinking, answer = utils.protocol_summary(pred=", ".join(protocol_pred), reasoning=protocol_thinking)
+    protocol_summary = answer
 
+    # Summarize Priority
+    print('PRIORITY:',priority_pred[0])
+    thinking, answer = utils.priority_summary(pred=priority_pred[0], reasoning=priority_thinking)
+    priority_summary = answer
+
+    output = {'protocol_thinking': protocol_summary, 'protocol_prediction': protocol_pred,
+              'priority_thinking': priority_summary, 'priority_prediction': priority_pred}
 
     return output
 

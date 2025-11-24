@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 print('loading function')
 import canhealth_functions
-import llm_setup_runpod as llm
+# import llm_setup_runpod as llm
 from datetime import datetime
 import threading
 import base64
@@ -195,7 +195,7 @@ if check_credentials():
     if not st.session_state.get('warmup_done',False):
         print(st.session_state.get('warmup_done'))
         print('warming up')
-        threading.Thread(target=llm.warmup_model, args=(st.secrets["runpod_api_key"]["api_key"],)).start()
+        # threading.Thread(target=llm.warmup_model, args=(st.secrets["runpod_api_key"]["api_key"],)).start()
         print('warmup done')
         st.session_state['warmup_done'] = True
 
